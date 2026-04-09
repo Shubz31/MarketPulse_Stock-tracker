@@ -19,7 +19,7 @@ const page = () => {
             height={600}
           />
         </div>
-        <div className='md-col-span xl:col-span-2'>
+        <div className='md:col-span xl:col-span-2'>
           <TradingViewWidget 
             title='Stock Heatmap'
             scriptUrl={`${scriptUrl}stock-heatmap.js`}
