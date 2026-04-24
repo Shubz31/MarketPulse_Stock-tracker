@@ -4,10 +4,18 @@ import FooterLink from '@/components/forms/FooterLink'
 import InputField from '@/components/forms/InputField'
 import SelectField from '@/components/forms/SelectField'
 import { Button } from '@/components/ui/button'
+import { signUpWithEmail } from '@/lib/actions/auth.actions'
 import { INVESTMENT_GOALS, PREFERRED_INDUSTRIES, RISK_TOLERANCE_OPTIONS } from '@/lib/constants'
+
+import { sign } from 'crypto'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 const SignUp = () => {
+
+        const router = useRouter();
+
     const {
     register,
     handleSubmit,
@@ -27,9 +35,28 @@ const SignUp = () => {
   },)
   const onSubmit = async (data: SignUpFormData) => {
     try {
-        console.log(data);
-    } catch (error) {
-        console.error(error);
+        console.log('Submitting sign up form...');
+        const result = await signUpWithEmail(data);
+        console.log('Sign up response:', result);
+        
+        if(result.success) {
+            console.log('Sign up successful, redirecting...');
+            // Add a small delay to ensure session is set before redirecting
+            setTimeout(() => {
+                console.log('Pushing to home page');
+                router.push('/');
+            }, 500);
+        } else {
+            console.log('Sign up failed with error:', result.error);
+            toast.error('Sign up failed', {
+                description: result.error || 'Failed to create account',
+            });
+        }
+    } catch (e) {
+        console.error('Sign up exception:', e);
+        toast.error('Sign up failed. Please try again later.', {
+            description: e instanceof Error ? e.message : 'Failed to create account',
+        });
     }
   }
   return (
