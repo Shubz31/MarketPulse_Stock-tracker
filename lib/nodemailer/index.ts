@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
-import { WELCOME_EMAIL_TEMPLATE } from "./templates";
+import { WELCOME_EMAIL_TEMPLATE, NEWS_SUMMARY_EMAIL_TEMPLATE } from "./templates";
 
-export const trasnporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
         user: process.env.NODEMAILER_EMAIL!,
@@ -19,5 +19,23 @@ export const sendWelcomeEmail = async ({ email, name, intro }: WelcomeEmailData)
         text: 'Thanks for joining MarketPulse! We\'re excited to have you on board. You now have tools to track the stock market and make smarter moves.',
         html: htmlTemplate,
     }
-    await trasnporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 }
+
+export const sendNewsSummaryEmail = async (
+    { email, date, newsContent }: { email: string; date: string; newsContent: string }
+    ): Promise<void> => {
+        const htmlTemplate = NEWS_SUMMARY_EMAIL_TEMPLATE
+            .replace('{{date}}', date)
+            .replace('{{newsContent}}', newsContent);
+
+        const mailOptions = {
+            from: `"MarketPulse" <marketpulse@stocks.pro>`,
+            to: email,
+            subject: `📈 Market News Summary Today - ${date}`,
+            text: `Today's market news summary from MarketPulse`,
+            html: htmlTemplate,
+        };
+
+    await transporter.sendMail(mailOptions);
+};
