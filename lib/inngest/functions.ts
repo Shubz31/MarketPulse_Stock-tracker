@@ -7,11 +7,9 @@ import { getNews } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
 
 export const sendSignUpEmail = inngest.createFunction(
-    { 
-        id: 'sign-up-email',
-        triggers: [{ event: 'app/user.created' }]
-    },
-    async ({ event, step }: any) => {
+    { id: 'sign-up-email' },
+    { event: 'app/user.created'},
+    async ({ event, step }) => {
         const userProfile = `
             - Country: ${event.data.country}
             - Investment goals: ${event.data.investmentGoals}
@@ -36,7 +34,7 @@ export const sendSignUpEmail = inngest.createFunction(
 
         await step.run('send-welcome-email', async () => {
             const part = response.candidates?.[0]?.content?.parts?.[0];
-            const introText = (part && 'text' in part ? part.text : null) ||'Thanks for joining Signalist. You now have the tools to track markets and make smarter moves.'
+            const introText = (part && 'text' in part ? part.text : null) ||'Thanks for joining MarketPulse. You now have the tools to track markets and make smarter moves.'
 
             const { data: { email, name } } = event;
 
@@ -51,11 +49,9 @@ export const sendSignUpEmail = inngest.createFunction(
 )
 
 export const sendDailyNewsSummary = inngest.createFunction(
-    { 
-        id: 'daily-news-summary',
-        triggers: [{ event: 'app/send.daily.news' }, { cron: '0 12 * * *' }]
-    },
-    async ({ step }: any) => {
+    { id: 'daily-news-summary' },
+    [ { event: 'app/send.daily.news' }, { cron: '0 12 * * *' } ],
+    async ({ step }) => {
         // Step #1: Get all users for news delivery
         const users = await step.run('get-all-users', getAllUsersForNewsEmail)
 
