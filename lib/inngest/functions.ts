@@ -7,8 +7,10 @@ import { getNews } from "@/lib/actions/finnhub.actions";
 import { getFormattedTodayDate } from "@/lib/utils";
 
 export const sendSignUpEmail = inngest.createFunction(
-  { id: 'sign-up-email' },
-  { event: 'app/user.created' },
+  {
+    id: 'sign-up-email',
+    triggers: [{ event: 'app/user.created' }],
+  },
   async ({ event, step }) => {
     const userProfile = `
         - Country: ${event.data.country}
@@ -35,24 +37,22 @@ export const sendSignUpEmail = inngest.createFunction(
       const part = response.candidates?.[0]?.content?.parts?.[0];
       const introText =
         (part && 'text' in part ? part.text : null) ||
-        'Thanks for joining MarketPulse. You now have the tools to track markets and make smarter moves.'
+        'Thanks for joining MarketPulse.'
 
-      const { email, name } = event.data; // ✅ FIXED (you had wrong destructuring)
+      const { email, name } = event.data;
 
       return await sendWelcomeEmail({ email, name, intro: introText });
     })
 
-    return {
-      success: true,
-      message: 'Welcome email sent successfully'
-    }
+    return { success: true }
   }
-)
+);
 
 export const sendDailyNewsSummary = inngest.createFunction(
     { 
         id: 'daily-news-summary',
-        cron: '0 12 * * *'
+        triggers: [{ cron: '0 12 * * *' }],
+
     },
     async ({ step }) => {
         // Step #1: Get all users for news delivery
