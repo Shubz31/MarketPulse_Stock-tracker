@@ -59,7 +59,7 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
                         alt="Dashboard Preview"
                         width={900}
                         height={700}
-                        className="w-[85%] h-auto object-contain rounded-xl shadow-2xl"
+                        className="auth-dashboard-preview w-[85%] h-auto object-contain rounded-xl shadow-2xl"
                     />
                 </div>
             </section>
