@@ -1,72 +1,90 @@
 'use client';
 
-import { Star } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import React, { useState } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
+import {
+  addToWatchlist,
+  removeFromWatchlist,
+} from '@/lib/actions/watchlist.actions';
+import { Star, Trash2 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
-interface WatchlistButtonProps {
-  symbol: string;
-  company: string;
-  isInWatchlist: boolean;
-  showTrashIcon?: boolean;
-  type?: 'button' | 'icon';
-  onWatchlistChange?: (symbol: string, isAdded: boolean) => void;
-}
-
-export default function WatchlistButton({
+const WatchlistButton = ({
   symbol,
   company,
   isInWatchlist,
   showTrashIcon = false,
   type = 'button',
   onWatchlistChange,
-}: WatchlistButtonProps) {
-  const [isAdded, setIsAdded] = useState(isInWatchlist);
-  const [isLoading, setIsLoading] = useState(false);
+}: WatchlistButtonProps) => {
+  const [added, setAdded] = useState<boolean>(!!isInWatchlist);
 
-  const handleToggleWatchlist = async () => {
-    setIsLoading(true);
-    try {
-      // TODO: Implement watchlist add/remove logic
-      const newStatus = !isAdded;
-      setIsAdded(newStatus);
-      onWatchlistChange?.(symbol, newStatus);
-    } catch (error) {
-      console.error('Failed to update watchlist:', error);
-    } finally {
-      setIsLoading(false);
+  const label = useMemo(() => {
+    if (type === 'icon') return added ? '' : '';
+    return added ? 'Remove from Watchlist' : 'Add to Watchlist';
+  }, [added, type]);
+
+  // Handle adding/removing stocks from watchlist
+  const toggleWatchlist = async () => {
+    const result = added
+      ? await removeFromWatchlist(symbol)
+      : await addToWatchlist(symbol, company);
+
+    if (result.success) {
+      toast.success(added ? 'Removed from Watchlist' : 'Added to Watchlist', {
+        description: `${company} ${
+          added ? 'removed from' : 'added to'
+        } your watchlist`,
+      });
+
+      // Notify parent component of watchlist change for state synchronization
+      onWatchlistChange?.(symbol, !added);
     }
+  };
+
+  // Debounce the toggle function to prevent rapid API calls (300ms delay)
+  const debouncedToggle = useDebounce(toggleWatchlist, 300);
+
+  // Click handler that provides optimistic UI updates
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent event bubbling and default behavior
+    e.stopPropagation();
+    e.preventDefault();
+
+    setAdded(!added);
+    debouncedToggle();
   };
 
   if (type === 'icon') {
     return (
       <button
-        onClick={handleToggleWatchlist}
-        disabled={isLoading}
-        className="watchlist-icon-btn"
-        aria-label={isAdded ? 'Remove from watchlist' : 'Add to watchlist'}
+        title={
+          added
+            ? `Remove ${symbol} from watchlist`
+            : `Add ${symbol} to watchlist`
+        }
+        aria-label={
+          added
+            ? `Remove ${symbol} from watchlist`
+            : `Add ${symbol} to watchlist`
+        }
+        className={`watchlist-icon-btn ${added ? 'watchlist-icon-added' : ''}`}
+        onClick={handleClick}
       >
-        <Star
-          className={cn(
-            'star-icon transition-all',
-            isAdded && 'watchlist-icon-added'
-          )}
-          fill={isAdded ? 'currentColor' : 'none'}
-        />
+        <Star fill={added ? 'currentColor' : 'none'} />
       </button>
     );
   }
 
   return (
     <button
-      onClick={handleToggleWatchlist}
-      disabled={isLoading}
-      className={cn(
-        'watchlist-btn transition-colors',
-        isAdded && 'watchlist-remove'
-      )}
+      className={`watchlist-btn ${added ? 'watchlist-remove' : ''}`}
+      onClick={handleClick}
     >
-      {isLoading ? 'Loading...' : isAdded ? 'Remove from Watchlist' : 'Add to Watchlist'}
+      {showTrashIcon && added ? <Trash2 /> : null}
+      <span>{label}</span>
     </button>
   );
-}
+};
+
+export default WatchlistButton;
