@@ -1,26 +1,35 @@
 import nodemailer from "nodemailer";
 import { WELCOME_EMAIL_TEMPLATE, NEWS_SUMMARY_EMAIL_TEMPLATE } from "./templates";
 
+const nodemailerEmail = process.env.NODEMAILER_EMAIL;
+const nodemailerPassword = process.env.NODEMAILER_PASSWORD;
+const mailFrom = process.env.NODEMAILER_FROM_EMAIL || nodemailerEmail;
+
+if (!nodemailerEmail || !nodemailerPassword) {
+    throw new Error('Missing NODEMAILER_EMAIL or NODEMAILER_PASSWORD environment variables');
+}
+
 export const transporter = nodemailer.createTransport({
-    service: "gmail",
+    service: 'gmail',
     auth: {
-        user: process.env.NODEMAILER_EMAIL!,
-        pass: process.env.NODEMAILER_PASSWORD!,
+        user: nodemailerEmail,
+        pass: nodemailerPassword,
     },
-})
+});
 
 export const sendWelcomeEmail = async ({ email, name, intro }: WelcomeEmailData) => {
-    const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace("{{name}}", name).replace("{{intro}}", intro);
+    const htmlTemplate = WELCOME_EMAIL_TEMPLATE.replace('{{name}}', name).replace('{{intro}}', intro);
 
     const mailOptions = {
-        from: `"MarketPulse" <marketpulse@stocks.pro>`,
+        from: `"MarketPulse" <${mailFrom}>`,
         to: email,
         subject: `Welcome to MarketPulse - your stock market toolkit is ready!`,
         text: 'Thanks for joining MarketPulse! We\'re excited to have you on board. You now have tools to track the stock market and make smarter moves.',
         html: htmlTemplate,
-    }
+    };
+
     await transporter.sendMail(mailOptions);
-}
+};
 
 export const sendNewsSummaryEmail = async (
     { email, date, newsContent }: { email: string; date: string; newsContent: string }
@@ -30,7 +39,7 @@ export const sendNewsSummaryEmail = async (
             .replace('{{newsContent}}', newsContent);
 
         const mailOptions = {
-            from: `"MarketPulse" <marketpulse@stocks.pro>`,
+            from: `"MarketPulse" <${mailFrom}>`,
             to: email,
             subject: `📈 Market News Summary Today - ${date}`,
             text: `Today's market news summary from MarketPulse`,
