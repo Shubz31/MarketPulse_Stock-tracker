@@ -4,10 +4,9 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import InputField from '@/components/forms/InputField';
 import FooterLink from '@/components/forms/FooterLink';
-import {signInWithEmail, signUpWithEmail} from "@/lib/actions/auth.actions";
-import {toast} from "sonner";
-import {signInEmail} from "better-auth/api";
-import {useRouter} from "next/navigation";
+import { signInWithEmail } from '@/lib/actions/auth.actions';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const SignIn = () => {
     const router = useRouter()
@@ -54,7 +53,13 @@ const SignIn = () => {
                     placeholder="Enter your email"
                     register={register}
                     error={errors.email}
-                    validation={{ required: 'Email is required', pattern: /^\w+@\w+\.\w+$/ }}
+                    validation={{
+                        required: 'Email is required',
+                        pattern: {
+                            value: /^\S+@\S+\.\S+$/,
+                            message: 'Invalid email address',
+                        },
+                    }}
                 />
 
                 <InputField
