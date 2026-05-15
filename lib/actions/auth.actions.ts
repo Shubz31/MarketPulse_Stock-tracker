@@ -37,8 +37,9 @@ export const signInWithEmail = async ({ email, password }: SignInFormData) => {
     try {
         const auth = await getAuth();
         const response = await auth!.api.signInEmail({ body: { email, password } })
+        console.log('Better-auth sign in response:', response);
 
-        if(response?.error) {
+        if (response?.error) {
             return { success: false, error: response.error }
         }
 
